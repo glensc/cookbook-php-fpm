@@ -33,13 +33,13 @@ define :php_fpm_pool, :template => "pool.conf.erb", :enable => true do
       cookbook params[:cookbook] || "php-fpm"
       variables(
         :pool_name => pool_name,
-        :listen => params[:listen],
+        :listen => params[:listen] || "/var/run/php-fpm-#{pool_name}.sock",
         :listen_owner => params[:listen_owner] || node['php-fpm']['listen_owner'] || node['php-fpm']['user'],
         :listen_group => params[:listen_group] || node['php-fpm']['listen_group'] || node['php-fpm']['group'],
-        :listen_mode => params[:listen_mode] || node['php-fpm']['listen_mode'],
-        :allowed_clients => params[:allowed_clients],
-        :user => params[:user],
-        :group => params[:group],
+        :listen_mode => params[:listen_mode] || node['php-fpm']['listen_mode'] || "0660" ,
+        :allowed_clients => params[:allowed_clients] ? [params[:allowed_clients]].flatten.join(',') : "127.0.0.1",
+        :user => params[:user] || node['php-fpm']['user'],
+        :group => params[:group] || node['php-fpm']['group'],
         :process_manager => params[:process_manager] || "ondemand",
         :max_children => params[:max_children] || 50,
         :start_servers => params[:start_servers] || 5,
@@ -47,10 +47,10 @@ define :php_fpm_pool, :template => "pool.conf.erb", :enable => true do
         :max_spare_servers => params[:max_spare_servers] || 35,
         :max_requests => params[:max_requests] || 500,
         :catch_workers_output => params[:catch_workers_output] || "no",
-        :security_limit_extensions => params[:security_limit_extensions] || node['php-fpm']['security_limit_extensions'],
+        :security_limit_extensions => params[:security_limit_extensions] || node['php-fpm']['security_limit_extensions'] || ".php",
         :access_log => params[:access_log] || false,
         :php_options => params[:php_options] || {},
-        :request_terminate_timeout => params[:request_terminate_timeout],
+        :request_terminate_timeout => params[:request_terminate_timeout] || 0,
         :params => params
       )
       notifies :restart, "service[php-fpm]"
